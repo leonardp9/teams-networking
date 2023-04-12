@@ -1,3 +1,8 @@
+/.vscode >> .gitignore
+/node_modules >> .gitignore
+/dist >> .gitignore
+
+
 # Logs
 logs
 *.log
