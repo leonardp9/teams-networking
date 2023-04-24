@@ -65,7 +65,21 @@ function getTeamAsHTML(team) {
   </tr>`;
 }
 
+let previewDisplayedTeams = [];
 function showTeams(teams) {
+  if (teams === previewDisplayedTeams) {
+    console.info("same teams");
+    return;
+  }
+  if (teams.length === previewDisplayedTeams.length) {
+    var eqContent = teams.every((t, i) => t === previewDisplayedTeams[i]);
+    if (eqContent) {
+      console.info("same content");
+      return;
+    }
+  }
+
+  previewDisplayedTeams = teams;
   const html = teams.map(getTeamAsHTML);
   $("table tbody").innerHTML = html.join("");
 }
@@ -97,19 +111,50 @@ function formSubmit(e) {
       console.info("updated", status);
       if (status.success) {
         //window.location.reload();
-        loadTeams().then(() => {
-          $("#editForm").reset();
+        // TODO clone second level.
+        // loadTeams().then(() => {
+        //   $("#editForm").reset();
+        // });
+        // v3
+        // allTeams = [...allTeams];
+        // //allTeams = JSON.parse(JSON.stringify(allTeams)); // deep clone
+        // console.info(allTeams.findIndex(t => t.id === team.id));
+        // var oldTeam = allTeams.find(t => t.id === team.id);
+        // oldTeam.promotion = team.promotion;
+        // oldTeam.members = team.members;
+        // oldTeam.name = team.name;
+        // oldTeam.url = team.url;
+
+        allTeams = allTeams.map(t => {
+          if (t.id === team.id) {
+            return {
+              ...t, // old props (eg. createdBy, createdAt)
+              ...team
+            };
+          }
+          return t;
         });
+
+        showTeams(allTeams);
+        $("#editForm").reset();
       }
     });
   } else {
     createTeamRequest(team).then(status => {
       console.info("created", status);
       if (status.success) {
+        // v.1
         // window.location.reload();
-        loadTeams(() => {
-          $("#editForm").reset();
-        });
+        // v.2
+        // loadTeams(() => {
+        //   $("#editForm").reset();
+        // });
+        // v.3
+        team.id = status.id;
+        //allTeams.push(team);
+        allTeams = [...allTeams, team];
+        showTeams(allTeams);
+        $("#editForm").reset();
       }
     });
   }
