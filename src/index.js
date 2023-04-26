@@ -51,16 +51,20 @@ function updateTeamRequest(team) {
   }).then(r => r.json());
 }
 
-function getTeamAsHTML(team) {
+function getTeamAsHTML({ id, url, promotion, members, name }) {
+  let displayURL = url;
+  if (url.startsWith("https://")) {
+    displayURL = url.substring(8);
+  }
   return `
   <tr>
-    <td>${team.promotion}</td>
-    <td>${team.members}</td>
-    <td>${team.name}</td>
-    <td>${team.url}</td>
+    <td>${promotion}</td>
+    <td>${members}</td>
+    <td>${name}</td>
+    <td><a href="${url}" target="_blank">${displayURL}</a></td>
     <td>
-      <a data-id="${team.id}" class="link-btn remove-btn">✖</a>
-      <a data-id="${team.id}" class="link-btn edit-btn">&#9998;</a>
+      <a data-id="${id}" class="link-btn remove-btn">✖</a>
+      <a data-id="${id}" class="link-btn edit-btn">&#9998;</a>
     </td>
   </tr>`;
 }
@@ -108,7 +112,6 @@ function formSubmit(e) {
     team.id = editId;
     console.warn("update...?", editId, team);
     updateTeamRequest(team).then(status => {
-      console.info("updated", status);
       if (status.success) {
         //window.location.reload();
         // TODO clone second level.
@@ -140,9 +143,8 @@ function formSubmit(e) {
       }
     });
   } else {
-    createTeamRequest(team).then(status => {
-      console.info("created", status);
-      if (status.success) {
+    createTeamRequest(team).then(({ success, id }) => {
+      if (success) {
         // v.1
         // window.location.reload();
         // v.2
@@ -150,7 +152,7 @@ function formSubmit(e) {
         //   $("#editForm").reset();
         // });
         // v.3
-        team.id = status.id;
+        team.id = id;
         //allTeams.push(team);
         allTeams = [...allTeams, team];
         showTeams(allTeams);
@@ -174,14 +176,14 @@ function deleteTeam(id) {
   });
 }
 
-function startEditTeam(id) {
-  editId = id;
-  const team = allTeams.find(team => team.id === id);
+function startEditTeam(edit) {
+  editId = edit;
+  const { promotion, members, name, url } = allTeams.find(({ id }) => id === edit);
 
-  $("#promotion").value = team.promotion;
-  $("#members").value = team.members;
-  $("#name").value = team.name;
-  $("#url").value = team.url;
+  $("#promotion").value = promotion;
+  $("#members").value = members;
+  $("#name").value = name;
+  $("#url").value = url;
 }
 
 function searchTeams(teams, search) {
